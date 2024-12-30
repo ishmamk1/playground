@@ -29,14 +29,14 @@ public class Todo {
     )
     private Long id;
 
-    private String todo_action;
-    private Boolean is_completed;
+    private String todoAction;
+    private Boolean isCompleted;
 
     public Todo() {};
 
     public Todo(String todo_action, Boolean is_completed) {
-        this.todo_action = todo_action;
-        this.is_completed = is_completed;
+        this.todoAction = todo_action;
+        this.isCompleted = is_completed;
     }
 
     public Long getId() {
@@ -48,19 +48,19 @@ public class Todo {
     }
 
     public String getTodoAction() {
-        return this.todo_action;
+        return this.todoAction;
     }
 
     public void setTodoAction(String todo_action) {
-        this.todo_action = todo_action;
+        this.todoAction = todo_action;
     }
 
     public Boolean getIsCompleted() {
-        return this.is_completed;
+        return this.isCompleted;
     }
 
     public void setIsCompleted(Boolean is_completed){
-        this.is_completed = is_completed;
+        this.isCompleted = is_completed;
     }
 
 }
