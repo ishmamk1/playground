@@ -1,1 +1,0 @@
-{"timestamp":"2024-12-29T02:28:08.694+00:00","status":400,"error":"Bad Request","message":"Required request body is missing: public void com.example.to_do_list.Todo.TodoController.addTodoAction(com.example.to_do_list.Todo.Todo)","path":"/api/v1/todo"}
