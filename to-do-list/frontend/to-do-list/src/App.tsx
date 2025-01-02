@@ -11,6 +11,7 @@ const App:React.FC = () =>  {
 
   const [todo, setTodo] = useState<string>("");
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [todoIdToEdit, setTodoIdToEdit] = useState<number | null>(null);
   
   const fetchTodos = async () => {
     try {
@@ -47,13 +48,30 @@ const App:React.FC = () =>  {
     }
   };
 
-  const toggleEdit = async () => {
-    
-  };
+  const updateTodo = async (id: number, updateTodo:string) => {
+    try {
+      await axios.put(
+        `/api/v1/todo/${id}`, // Ensure the endpoint matches your backend
+        updateTodo, // Send the plain string as the request body
+        {
+          headers: {
+            'Content-Type': 'text/plain', // Specify the content type as plain text
+          },
+        }
+      );
+      fetchTodos();
+      console.log("Todo updated!");
+    } catch (error) {
+      console.error("Error", error);
+    }
+  }
+
+  const toggleEdit = (id:number | null) => {
+    setTodoIdToEdit(id);
+    console.log(todoIdToEdit)
+  }
   
 
-
-  
   useEffect(() => {
     fetchTodos();
   }, []);
@@ -64,7 +82,7 @@ const App:React.FC = () =>  {
         <span className="heading">To-Do List</span>
         <InputField todo={todo} setTodo ={setTodo} handleAdd={handleAdd}/>
         <button onClick={fetchTodos}>Fetch Todos</button> {/* Button to fetch on demand */}
-        <TodoList todos={todos} deleteTodo={deleteTodo}></TodoList>
+        <TodoList todos={todos} deleteTodo={deleteTodo} updateTodo={updateTodo} todoIdToEdit={todoIdToEdit} toggleEdit={toggleEdit}></TodoList>
       </div>
     </>
   )
