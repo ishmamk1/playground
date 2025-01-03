@@ -70,6 +70,15 @@ const App:React.FC = () =>  {
     setTodoIdToEdit(id);
     console.log(todoIdToEdit)
   }
+
+  const checkTodo = async (id:number) => {
+    try {
+      await axios.put(`/api/v1/todo/completed/${id}`);
+      fetchTodos();
+    } catch (error) {
+      console.log("Error:" + error);
+    }
+  }
   
 
   useEffect(() => {
@@ -82,10 +91,10 @@ const App:React.FC = () =>  {
         <span className="heading">To-Do List</span>
         <InputField todo={todo} setTodo ={setTodo} handleAdd={handleAdd}/>
         <button onClick={fetchTodos}>Fetch Todos</button> {/* Button to fetch on demand */}
-        <TodoList todos={todos} deleteTodo={deleteTodo} updateTodo={updateTodo} todoIdToEdit={todoIdToEdit} toggleEdit={toggleEdit}></TodoList>
+        <TodoList todos={todos} deleteTodo={deleteTodo} updateTodo={updateTodo} todoIdToEdit={todoIdToEdit} toggleEdit={toggleEdit} checkTodo={checkTodo}></TodoList>
       </div>
     </>
   )
 }
 
-export default App
+export default App;

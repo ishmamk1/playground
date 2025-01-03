@@ -36,4 +36,10 @@ public class TodoService {
         todo.setTodoAction(newTodoAction);
         todoRepository.save(todo);
     }
+
+    public void checkTodo(Long id) {
+        Todo todo = todoRepository.getReferenceById(id);
+        todo.setIsCompleted(!todo.getIsCompleted());
+        todoRepository.save(todo);
+    }
 }

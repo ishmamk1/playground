@@ -9,10 +9,11 @@ interface Props {
     deleteTodo: (id:number) => void;
     updateTodo: (id:number, todoAction:string) => void;
     toggleEdit: (id:number | null) => void;
+    checkTodo: (id:number) => void;
 }
 
 
-const TodoList:React.FC<Props> = ({ todos, deleteTodo, updateTodo, todoIdToEdit, toggleEdit }) => {
+const TodoList:React.FC<Props> = ({ todos, deleteTodo, updateTodo, todoIdToEdit, toggleEdit, checkTodo }) => {
     const [editText, setEditText] = React.useState("");
 
     const handleEditChange = (e:React.ChangeEvent<HTMLInputElement>) => {
@@ -38,14 +39,27 @@ const TodoList:React.FC<Props> = ({ todos, deleteTodo, updateTodo, todoIdToEdit,
               ) : (
                 // Show static text for todos not in edit mode
                 <div>
-                  <p>{todo.todoAction} | {todo.isComplete ? "True" : "False"}</p>
-                  <button onClick={() => {
-                    toggleEdit(todo.id);
-                    setEditText(todo.todoAction); // Initialize the input with the current text
-                  }}>
+                    {todo.isCompleted ? (
+                    <p style={{ textDecoration: "line-through", color: "gray" }}>
+                        {todo.todoAction}
+                        {todo.isCompleted}
+                    </p>
+                    ) : (
+                    <div>
+                        <p>{todo.todoAction}</p>
+                        <p>{todo.isCompleted}</p>
+                    </div>
+                    )}
+                    <button
+                    onClick={() => {
+                        toggleEdit(todo.id);
+                        setEditText(todo.todoAction); // Initialize the input with the current text
+                    }}
+                    >
                     Update
-                  </button>
+                    </button>
                   <button onClick={() => deleteTodo(todo.id)}>Delete</button>
+                  <button onClick={() => checkTodo(todo.id)}>Check</button>
                 </div>
               )}
             </div>

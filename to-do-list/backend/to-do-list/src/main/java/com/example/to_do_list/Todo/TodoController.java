@@ -55,4 +55,8 @@ public class TodoController {
         todoService.updateTodoAction(id, updateTodo);
     }
 
+    @PutMapping("completed/{id}")
+    public void checkTodo(@PathVariable("id") Long id) {
+        todoService.checkTodo(id);
+    }
 }
