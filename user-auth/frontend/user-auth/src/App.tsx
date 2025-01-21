@@ -1,18 +1,15 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import AppProvider from "./store/appProvider.tsx"; // Assuming AppProvider is the context provider
+import LoginPage from './pages/LoginPage.tsx';
+import Router from './Router.tsx';
 
-import Header from './components/Header';
-
-function App() {
-  const [count, setCount] = useState(0)
-
+const App: React.FC = () => {
   return (
-    <>
-      <Header pageTitle="User-Auth" logoSrc={reactLogo}/>
-    </>
-  )
-}
+    <AppProvider>
+      <Router/>
+    </AppProvider>
+  );
+};
 
 export default App;
+
