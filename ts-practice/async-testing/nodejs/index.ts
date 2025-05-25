@@ -11,6 +11,8 @@ interface PokemonList {
 }
 
 interface Pokemon {
+    id: number;
+    name: string;
     stats: {
         base_stat: number;
         effort: number;
@@ -21,15 +23,41 @@ interface Pokemon {
     }[]
 }
 
+const getPokemonList = async (): Promise<PokemonList> => {
+    const listResponse = await fetch("https://pokeapi.co/api/v2/pokemon/");
+    return await listResponse.json() as PokemonList;
+}
+
+const getPokemon = async (url: string): Promise<Pokemon> => {
+    const pokemonResponse = await fetch(url);
+    return await pokemonResponse.json() as Pokemon;
+}
+
+const getFirstPokemon = async (): Promise<Pokemon> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            console.log("getting list");
+            const list = await getPokemonList();
+            const pokemon = await getPokemon(list.results[0].url);
+            if (pokemon) {
+                resolve(pokemon);
+            } else {
+                reject(new Error("Failed to fetch the first Pokemon"));
+            }
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
 
 (async function() {
     try {
-        const listResponse = await fetch("https://pokeapi.co/api/v2/pokemon/");
-        const list: PokemonList = await listResponse.json() as PokemonList;
+        const list = await getPokemonList();
+        
+        const data = await Promise.all(list.results.map((pokemon) => getPokemon(pokemon.url)));
+        console.log(data);
+        console.log(">>> Done");
 
-        const dataResponse = await fetch(list.results[0].url);
-        const data: Pokemon = await dataResponse.json() as Pokemon;
-        console.log(data.stats);
     } catch (e) {
         console.error(e);
     }
