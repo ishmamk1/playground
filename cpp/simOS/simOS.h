@@ -10,7 +10,7 @@ enum State{ RUNNING, READY, WAIT, ZOMBIE, ORPHAN };
 
 struct FileReadRequest
 {
-    int PID{0};
+    int PID;
     std::string fileName{""};
 };
 

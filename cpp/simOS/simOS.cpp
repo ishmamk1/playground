@@ -99,14 +99,104 @@ bool SimOS::NewProcess( unsigned long long size, int priority )
 
 bool SimOS::SimFork() {
     // do nothing if OS process
+    if (currentProcessPID == 1) return false;
 
     // check memory
+    unsigned long long processMemorySize = processTable[currentProcessPID].memoryItem.itemSize;
+    ProcessData parentProcessData = processTable[currentProcessPID];
+    processTable[currentProcessPID].state = State::RUNNING;
 
-    // insert and create child process
+
+    int memoryIndex = findAvailableMemory(processMemorySize);
+
+    if (memoryIndex == -1) return false;
+
+    // Place child process in memory
+    unsigned long long newMemoryAddress = memory[memoryIndex-1].itemAddress + memory[memoryIndex-1].itemSize;
+
+    MemoryItem childProcess{  newMemoryAddress, processMemorySize, availablePIDValue };
+
+    memory.insert(memory.begin() + memoryIndex, childProcess);
+
+    ReadyItem readyChildProcessItem{ parentProcessData.priority, availablePIDValue };
+    readyQueue.push(readyChildProcessItem);
 
     // update process table for child and parent
+    ProcessData childProcessData;
+    childProcessData.memoryItem = childProcess;
+    childProcessData.parentPID = currentProcessPID;
+    childProcessData.priority = parentProcessData.priority;
+    childProcessData.state = State::READY;
+
+    processTable[availablePIDValue] = childProcessData;
+
+    // Update process table for parent
+    processTable[currentProcessPID].childrenPID.push_back(childProcess.PID);
+
+    availablePIDValue++;
+
+    return true;
 }
+
+void SimOS::SimExit() {
+    // return if it is OS process
+    if (currentProcessPID == 1) return;
+
+
+}
+
+void SimOS::SimWait() {
+
+}
+
+void SimOS::DiskReadRequest( int diskNumber, std::string fileName ) {
+    if (currentProcessPID == 1) return;
+
+    if (diskNumber >= disks.size() || diskNumber < 0) 
+        throw std::logic_error("Invalid disk number.");
+
+    // Create file read req
+    FileReadRequest fileReq{ currentProcessPID, fileName };
+
+    // place it into disk 
+    disks[diskNumber].queue.push(fileReq);
+
+    // update process status to WAITING
+    processTable[currentProcessPID].state == WAIT;
+
+    // remove from current cpu 
+    currentProcessPID = -1;
+}
+
 
 int SimOS::GetCPU() {
     return currentProcessPID;
+}
+
+std::vector<int> SimOS::GetReadyQueue() {
+    std::vector<int> readyQueuePIDs;
+
+    auto copyQueue = readyQueue;
+
+    while (!copyQueue.empty()) {
+        int copyProcessPID = copyQueue.top().second;
+        readyQueuePIDs.push_back(copyProcessPID);
+        copyQueue.pop();
+    }
+
+    return readyQueuePIDs;
+}
+
+MemoryUse SimOS::GetMemory( ) {
+    return memory;
+}
+
+FileReadRequest SimOS::GetDisk( int diskNumber ) {
+   if (diskNumber >= disks.size() || diskNumber < 0) throw std::logic_error("Invalid disk number.");
+   return disks[diskNumber].current;
+}
+
+std::queue<FileReadRequest> SimOS::GetDiskQueue( int diskNumber ) {
+    if (diskNumber >= disks.size() || diskNumber < 0) throw std::logic_error("Invalid disk number.");
+    return disks[diskNumber].queue;
 }

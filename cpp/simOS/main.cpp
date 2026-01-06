@@ -1,27 +1,73 @@
 #include <iostream>
+#include <cassert>
 #include "simOS.h"
 
-int main() {
-    // Create a simulated OS with 2 disks, 1000 bytes of RAM, OS size 100
-    SimOS sim(2, 1000, 100);
-
-    std::cout << "=== Initial State ===" << std::endl;
-    std::cout << "CPU PID: " << sim.GetCPU() << std::endl;
-
-    // Add a process of size 200, priority 5
-    bool added1 = sim.NewProcess(200, 5);
-    std::cout << "Added process 1 (size 200, priority 5): " << (added1 ? "YES" : "NO") << std::endl;
-    std::cout << "CPU PID: " << sim.GetCPU() << std::endl;
-
-    // Add a process of size 150, priority 3 (should go to ready queue)
-    bool added2 = sim.NewProcess(150, 3);
-    std::cout << "Added process 2 (size 150, priority 3): " << (added2 ? "YES" : "NO") << std::endl;
-    std::cout << "CPU PID: " << sim.GetCPU() << std::endl;
-
-    // Add a process of size 50, priority 10 (should preempt CPU)
-    bool added3 = sim.NewProcess(50, 10);
-    std::cout << "Added process 3 (size 50, priority 10): " << (added3 ? "YES" : "NO") << std::endl;
-    std::cout << "CPU PID: " << sim.GetCPU() << std::endl;
-
-    // Print ready queue PIDs (unordered, just for demo)
+void check(const std::string& name, bool condition) {
+    std::cout << (condition ? "[PASS] " : "[FAIL] ") << name << "\n";
 }
+
+int main() {
+    std::cout << "===== Minimal SimFork Tests =====\n";
+
+    // Create OS: 1 disk, 1000 bytes RAM, OS uses 100
+    SimOS os(1, 1000, 100);
+
+    /* ---------------------------------------
+       TEST 1: OS starts on CPU
+    --------------------------------------- */
+    check("OS starts running",
+          os.GetCPU() == 1);
+
+    /* ---------------------------------------
+       TEST 2: Fork from OS fails
+    --------------------------------------- */
+    bool forkFromOS = os.SimFork();
+    check("Fork from OS fails",
+          forkFromOS == false);
+
+    /* ---------------------------------------
+       TEST 3: Create user process
+    --------------------------------------- */
+    bool created = os.NewProcess(200, 5);
+    check("User process created", created);
+
+    int parentPID = os.GetCPU();
+    check("User process on CPU",
+          parentPID != 1);
+
+    /* ---------------------------------------
+       TEST 4: Fork from user process succeeds
+    --------------------------------------- */
+    bool forked = os.SimFork();
+    check("Fork from user process succeeds",
+          forked == true);
+
+    /* ---------------------------------------
+       TEST 5: CPU stays with parent after fork
+       (child must NOT preempt parent)
+    --------------------------------------- */
+    check("Parent keeps CPU after fork",
+          os.GetCPU() == parentPID);
+
+    /* ---------------------------------------
+       TEST 6: Repeated fork does not change CPU
+    --------------------------------------- */
+    os.SimFork();
+    os.SimFork();
+
+    check("CPU still parent after multiple forks",
+          os.GetCPU() == parentPID);
+
+    /* ---------------------------------------
+       TEST 7: Fork fails when memory exhausted
+    --------------------------------------- */
+    while (os.NewProcess(200, 1)) {}
+
+    bool forkFail = os.SimFork();
+    check("Fork fails when memory full",
+          forkFail == false);
+
+    std::cout << "===== Tests Complete =====\n";
+    return 0;
+}
+
