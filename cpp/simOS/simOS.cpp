@@ -142,11 +142,15 @@ void SimOS::SimExit() {
     // return if it is OS process
     if (currentProcessPID == 1) return;
 
+    // Release memory
+
+    // delete decendents
+
 
 }
 
 void SimOS::SimWait() {
-
+    if (currentProcessPID == 1) return;
 }
 
 void SimOS::DiskReadRequest( int diskNumber, std::string fileName ) {
@@ -158,14 +162,63 @@ void SimOS::DiskReadRequest( int diskNumber, std::string fileName ) {
     // Create file read req
     FileReadRequest fileReq{ currentProcessPID, fileName };
 
+    Disk& disk = disks[diskNumber];
+
     // place it into disk 
-    disks[diskNumber].queue.push(fileReq);
+    if (!disk.busy) {
+        disk.current = fileReq;
+        disk.busy = true;
+    } else disk.queue.push(fileReq);
 
     // update process status to WAITING
-    processTable[currentProcessPID].state == WAIT;
+    processTable[currentProcessPID].state = WAIT;
 
     // remove from current cpu 
-    currentProcessPID = -1;
+    if (!readyQueue.empty()) {
+        currentProcessPID = readyQueue.top().second;
+        readyQueue.pop();
+        processTable[currentProcessPID].state = RUNNING;
+    }
+}
+
+void SimOS::DiskJobCompleted( int diskNumber ) {
+    if (diskNumber >= disks.size() || diskNumber < 0) 
+        throw std::logic_error("Invalid disk number.");
+    
+    Disk& disk = disks[diskNumber];
+
+    // GET PID AND add to ready queue / CPU
+    int diskPID = disk.current.PID;
+
+    ProcessData& processData = processTable[diskPID];
+    ProcessData& currentProcessData = processTable[currentProcessPID];
+
+    if (processData.priority > currentProcessData.priority) {
+        // put old process back in ready queue
+        // change to ready
+        ReadyItem currentProcessItem { currentProcessData.priority, currentProcessData.memoryItem.PID};
+        currentProcessData.state = READY;
+        readyQueue.push(currentProcessItem);
+
+        // insert new process
+        processData.state = RUNNING;
+        currentProcessPID = diskPID;
+
+    } else {
+        ReadyItem processItem { processData.priority, diskPID};
+        processData.state = READY;
+        readyQueue.push(processItem);
+    }
+
+    // Add next process to disk or set to not busy and clear.
+    if (!disk.queue.empty()) {
+        FileReadRequest& fileReq = disk.queue.front();
+        disk.queue.pop();
+
+        disk.current = fileReq;
+        disk.busy = true;
+    } else disk.busy = false;
+
 }
 
 
